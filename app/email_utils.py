@@ -29,7 +29,7 @@ def send_hr_email(user_id, user_email, user_query):
     msg['Reply-To'] = user_email 
 
     try:
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+        with smtplib.SMTP_SSL('smtp.gmail.com', 587) as server:
             server.login(sender, password)
             server.sendmail(sender, [hr_recipient], msg.as_string())
         print(f"Email sent. HR can now reply directly to {user_email}")
