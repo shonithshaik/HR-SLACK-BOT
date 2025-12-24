@@ -22,16 +22,14 @@ async def schedule_heartbeat():
     asyncio.create_task(heartbeat())
 
 async def heartbeat():
-    # Replace 'your-app-name' with the URL Render gives you later
-    url = "https://your-app-name.onrender.com/health"
+    url = "https://hr-slack-bot-yz67.onrender.com/health"
     while True:
         try:
             async with httpx.AsyncClient() as client:
                 await client.get(url)
-                print("💓 Heartbeat: App is awake")
         except Exception as e:
-            print(f"💓 Heartbeat failed: {e}")
-        await asyncio.sleep(600) # Wait 10 minutes
+            print(f"Heartbeat failed: {e}")
+        await asyncio.sleep(600) 
 
 @app.get("/health")
 async def health_check():
