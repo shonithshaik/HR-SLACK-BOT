@@ -1,6 +1,6 @@
 import os
 from google import genai
-from drive_loader import load_drive_docs 
+from app.drive_loader import load_drive_docs 
 from dotenv import load_dotenv
 
 load_dotenv()

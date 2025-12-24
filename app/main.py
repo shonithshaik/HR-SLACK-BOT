@@ -6,8 +6,8 @@ from fastapi import FastAPI, Request, BackgroundTasks
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 from dotenv import load_dotenv
-from gemini import ask_gemini_fast
-from email_utils import send_hr_email
+from app.gemini import ask_gemini_fast
+from app.email_utils import send_hr_email
 
 load_dotenv()
 
