@@ -6,10 +6,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+SERVICE_ACCOUNT_PATH = os.getenv("GDRIVE_JSON_PATH", "service_account.json")
 
 KNOWLEDGE_TEXT = load_drive_docs(
     os.getenv("KNOWLEDGE_BASE_FOLDER_ID"), 
-    "credentials/service_account.json"
+    SERVICE_ACCOUNT_PATH
 )
 
 def ask_gemini_fast(question):

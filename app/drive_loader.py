@@ -3,10 +3,18 @@ from googleapiclient.discovery import build
 from pypdf import PdfReader
 from docx import Document
 import io
+import os
 
 SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
 
 def load_drive_docs(folder_id, service_account_file):
+    if not os.path.exists(service_account_file):
+        alternative_path = os.path.join(os.getcwd(), "service_account.json")
+        if os.path.exists(alternative_path):
+            service_account_file = alternative_path
+        else:
+            raise FileNotFoundError(f"Could not find {service_account_file} anywhere!")
+        
     creds = service_account.Credentials.from_service_account_file(
         service_account_file, scopes=SCOPES
     )

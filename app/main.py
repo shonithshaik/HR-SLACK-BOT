@@ -1,5 +1,7 @@
 import os
 import json
+import httpx
+import asyncio
 from fastapi import FastAPI, Request, BackgroundTasks
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
@@ -14,6 +16,26 @@ app = FastAPI()
 slack_client = WebClient(token=os.getenv("SLACK_BOT_TOKEN"))
 BOT_USER_ID = os.getenv("BOT_USER_ID")
 processed_event_ids = set()
+
+@app.on_event("startup")
+async def schedule_heartbeat():
+    asyncio.create_task(heartbeat())
+
+async def heartbeat():
+    # Replace 'your-app-name' with the URL Render gives you later
+    url = "https://your-app-name.onrender.com/health"
+    while True:
+        try:
+            async with httpx.AsyncClient() as client:
+                await client.get(url)
+                print("💓 Heartbeat: App is awake")
+        except Exception as e:
+            print(f"💓 Heartbeat failed: {e}")
+        await asyncio.sleep(600) # Wait 10 minutes
+
+@app.get("/health")
+async def health_check():
+    return {"status": "alive"}
 
 async def process_message(user_id, channel_id, current_text, thread_ts):
     try:
@@ -53,6 +75,7 @@ async def process_message(user_id, channel_id, current_text, thread_ts):
         print(f"Slack API Error: {e.response['error']}")
     except Exception as e:
         print(f"General Error: {e}")
+
 
 @app.post("/slack/events")
 async def handle_events(request: Request, background_tasks: BackgroundTasks):
