@@ -1,37 +1,46 @@
-import smtplib
 import os
-from email.mime.text import MIMEText
+import httpx
 
 def send_hr_email(user_id, user_email, user_query):
-    sender = os.getenv("SENDER_EMAIL")
-    password = os.getenv("SENDER_APP_PASSWORD") 
-    hr_recipient = os.getenv("HR_EMAIL") 
+    api_key = os.getenv("RESEND_API_KEY")
+    hr_recipient = os.getenv("HR_EMAIL")
+    
+    # Resend Free Tier requires sending from their "onboarding" address 
+    # unless you verify a domain.
+    sender = "HR-Bot <onboarding@resend.dev>"
 
-    body = f"""
-    The HR Bot could not answer a query.
+    url = "https://api.resend.com/emails"
     
-    USER DETAILS:
-    - Slack ID: {user_id}
-    - Email: {user_email}
-    
-    QUESTION:
-    {user_query}
-    
-    ---
-    NOTE: You can click 'REPLY' to this email to contact the employee directly.
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+
+    # Prepare the email content
+    html_content = f"""
+    <h3>HR Bot Escalation Needed</h3>
+    <p><strong>Employee:</strong> {user_id} ({user_email})</p>
+    <p><strong>Query:</strong> {user_query}</p>
+    <hr>
+    <p><em>Note: You can reply to this email to contact the employee directly.</em></p>
     """
 
-    msg = MIMEText(body)
-    msg['Subject'] = f"HR Bot Escalation - {user_id}"
-    msg['From'] = sender
-    msg['To'] = hr_recipient
-    
-    msg['Reply-To'] = user_email 
+    payload = {
+        "from": sender,
+        "to": [hr_recipient],
+        "subject": f"🚨 HR Escalation: Request from {user_id}",
+        "reply_to": user_email,
+        "html": html_content
+    }
 
     try:
-        with smtplib.SMTP_SSL('smtp.gmail.com', 587) as server:
-            server.login(sender, password)
-            server.sendmail(sender, [hr_recipient], msg.as_string())
-        print(f"Email sent. HR can now reply directly to {user_email}")
+        # We use a timeout to ensure the bot doesn't hang if the API is slow
+        response = httpx.post(url, headers=headers, json=payload, timeout=10.0)
+        
+        if response.status_code in [200, 201]:
+            print(f"📧 Email API Success: Escalation sent to {hr_recipient}")
+        else:
+            print(f"📧 Email API Error: {response.status_code} - {response.text}")
+            
     except Exception as e:
-        print(f"Email failed: {e}")
+        print(f"📧 API Connection Failed: {e}")
